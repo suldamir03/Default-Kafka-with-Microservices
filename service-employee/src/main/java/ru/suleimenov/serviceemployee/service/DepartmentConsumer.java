@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import ru.suleimenov.serviceemployee.model.Department;
 
@@ -19,11 +18,11 @@ public class DepartmentConsumer {
 
 
     @KafkaListener(
-            topics = "test4"
-            ,groupId = "foo",
+            topics = "test"
+            ,groupId = "group",
             containerFactory = "singleFactory"
     )
-    public void consume( Department event) throws JsonProcessingException {
+    public void consume( Department event) {
 
         LOGGER.info(String.format("Department event received in employee service => %s", writeValueAsString(event)));
         System.out.println("event: " + event.getName());

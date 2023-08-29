@@ -4,6 +4,7 @@ server:
 spring:
   application:
     name: service-department
+
   datasource:
     driver-class-name: org.postgresql.Driver
     username: postgres

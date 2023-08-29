@@ -6,3 +6,17 @@ cd /d E:/kafka
 
 cd /d E:/kafka
 .\bin\windows\kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic test4 --from-beginning
+
+//creation of topics
+docker exec {name of container} kafka-topics --bootstrap-server {name of container}:9092 --create --topic test
+
+//check list of topics
+docker exec kafka kafka-topics --bootstrap-server kafka:9092 --list
+
+//console producer
+docker exec --interactive --tty kafka kafka-console-producer --bootstrap-server kafka:9092 --topic test
+
+//console consumer
+docker exec --interactive --tty kafka kafka-console-consumer --bootstrap-server kafka:9092 --topic test --from-beginning
+
+video: https://www.youtube.com/watch?v=dTWxl5XgGZc

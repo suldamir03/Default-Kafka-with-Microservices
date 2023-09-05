@@ -11,22 +11,20 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 public class DepartmentController {
-    private final static String topic= "test";
+
     private final DepartmentRepository departmentRepository;
     private final DepartmentProducer departmentProducer;
 
     @GetMapping("/departments/{id}")
     public String department(@PathVariable("id") Long id){
         Optional<Department> department = departmentRepository.findById(id);
-        System.out.println("department = " + department.get().toString());
+
+        if (department.isEmpty()){
+            return String.format("Department with id %s not exist", id);
+        }
+
+        System.out.println("department = " + department.get());
         departmentProducer.sendMessage(department.get());
         return "Message successfully sent";
-    }
-
-    @PostMapping("/department")
-    public String department(@RequestBody Department department){
-        System.out.println("department = " + department.toString());
-        departmentProducer.sendMessage(department);
-        return "Message sent successfully";
     }
 }

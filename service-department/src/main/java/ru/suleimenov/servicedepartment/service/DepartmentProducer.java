@@ -15,10 +15,8 @@ import ru.suleimenov.servicedepartment.model.Department;
 public class DepartmentProducer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DepartmentProducer.class);
-
-    private NewTopic topic;
-
-    private KafkaTemplate kafkaTemplate;
+    private final NewTopic topic;
+    private final KafkaTemplate<String, Department> kafkaTemplate;
 
     public DepartmentProducer(NewTopic topic, KafkaTemplate<String, Department> kafkaTemplate) {
         this.topic = topic;
@@ -28,7 +26,6 @@ public class DepartmentProducer {
     public void sendMessage(Department event){
         LOGGER.info(String.format("Department event => %s", event.toString()));
 
-//         create Message
         Message<Department> message = MessageBuilder
                 .withPayload(event)
                 .setHeader(KafkaHeaders.TOPIC, topic.name())

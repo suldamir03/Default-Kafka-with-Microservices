@@ -7,9 +7,9 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    username: root
-    password: root
-    url: jdbc:postgresql://localhost:5435/project
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5435/project}
   jpa:
     properties:
       hibernate:
@@ -20,10 +20,12 @@ spring:
       ddl-auto: update
 
 eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME:localhost}
   client:
     service-url:
 #      указываем на gateway
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://${eureka.instance.hostname}:8761/eureka/
 
 #Сервер на котором работает кафка
-server-kafka: localhost:9092
+server-kafka: ${SERVER_KAFKA:kafka:9092}

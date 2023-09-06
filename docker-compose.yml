@@ -6,6 +6,8 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - kafka
   kafka:
     image: confluentinc/cp-kafka:6.0.14
     container_name: kafka
@@ -17,28 +19,32 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_INTERNAL://kafka:29092
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+    networks: 
+      - kafka
   db:
     image: bitnami/postgresql
     container_name: db
     restart: always
+    ports:
+      - "5435:5432"
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
       POSTGRES_DB: project
     volumes:
       - ./pgdata:/var/lib/postgresql/data
-    ports:
-      - 5435:5432
     networks:
       - postgres
   pgadmin:
     container_name: pgadmin
     image: dpage/pgadmin4
+    restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
@@ -49,12 +55,63 @@ services:
       - "5050:80"
     networks:
       - postgres
-    restart: unless-stopped
-    
+  gateway:
+    container_name: gateway
+    image: micro/gateway
+    ports:
+      - "8761:8761"
+    environment:
+      EUREKA_HOSTNAME: gateway
+    networks:
+      - spring
+  service-employee:
+    container_name: service-employee
+    image: micro/service-employee
+    ports:
+      - "8000:8000"
+    environment:
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/project
+      SERVER_KAFKA: kafka:9092
+      EUREKA_HOSTNAME: gateway
+    depends_on:
+      - db
+      - gateway
+      - kafka
+    networks:
+      - spring
+      - postgres
+      - kafka
+  service-department:
+    container_name: service-department
+    image: micro/service-department
+    ports:
+      - "8088:8088"
+    networks:
+      - spring
+      - postgres
+      - kafka
+    environment:
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/project
+      SERVER_KAFKA: kafka:9092
+      EUREKA_HOSTNAME: gateway
+    depends_on:
+      - db
+      - gateway
+      - kafka
+
 networks:
-  postgres:
+  spring:
     driver: bridge
 
+  postgres:
+    driver: bridge
+  kafka:
+    driver: bridge
+    
 volumes:
   postgres:
   pgadmin:
